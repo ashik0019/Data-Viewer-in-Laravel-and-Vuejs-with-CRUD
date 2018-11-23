@@ -22,4 +22,4 @@ Route::get('/home', 'HomeController@index')->name('home');
 Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
-Route::get('/coustomer', 'CustomerController')->name('customer');
+Route::get('/coustomers', 'CustomerController')->name('customer');
