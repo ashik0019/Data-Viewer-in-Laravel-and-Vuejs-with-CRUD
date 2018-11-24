@@ -3,8 +3,33 @@
         <div class="row justify-content-center">
             <div class="col-md-12">
                 <div class="card">
-                    <div class="card-header">Customer</div>
+                    <div class="card-header">
+                        <h4 class="card-title float-left">Customer</h4>
+                        <h4 class="card-tools float-right">
+                            <button @click="reload" class="btn btn-primary">Reload <i class="fas fa-sync"></i></button>
+                        </h4>
+
+                    </div>
                     <div class="card-body">
+                        <div class="mb-3">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <strong>Search By: </strong>
+                                </div>
+                                <div class="col-md-3">
+                                    <select v-model="queryField"  id="fields" class="form-control">
+                                        <option value="name">Name</option>
+                                        <option value="email">Email</option>
+                                        <option value="phone">Phone</option>
+                                        <option value="address">Address</option>
+                                        <option value="total">Total</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-7">
+                                    <input v-model="query" type="text" class="form-control" placeholder="Search">
+                                </div>
+                            </div>
+                        </div>
                         <div class="table-responsive">
                             <table class="table table-hover table-bordered table-striped">
                                 <thead>
@@ -36,12 +61,19 @@
                                         </button>
                                     </td>
                                 </tr>
+                                <tr v-show="!customers.length">
+                                    <td colspan="6">
+                                        <div class="alert alert-danger">
+                                            sorry :( No data Found !.
+                                        </div>
+                                    </td>
+                                </tr>
                                 </tbody>
                             </table>
                             <pagination v-if="pagination.last_page > 1"
                                         :pagination="pagination"
                                         :offset="5"
-                                        @paginate="getData()"
+                                        @paginate="query === '' ? getData() : searchData()"
                             ></pagination>
                         </div>
                     </div>
@@ -56,9 +88,20 @@
     export default {
         data() {
             return {
+                query: '',
+                queryField: 'name',
                 customers: [],
                 pagination: {
                     current_page: 1,
+                }
+            }
+        },
+        watch: {
+            query: function (newQ, old) {
+                if(newQ === ''){
+                    this.getData();
+                }else {
+                    this.searchData()
                 }
             }
         },
@@ -79,6 +122,24 @@
                     console.log(e)
                     this.$Progress.fail()
                 })
+            },
+            searchData(){
+                this.$Progress.start()
+                axios.get('/api/search/customers/'+this.queryField+'/'+this.query+'?page='+this.pagination.current_page)
+                .then(response => {
+                    this.customers = response.data.data
+                    this.pagination = response.data.meta
+                    this.$Progress.finish()
+                })
+                .catch(e => {
+                    console.log(e)
+                    this.$Progress.fail()
+                })
+            },
+            reload(){
+                this.getData()
+                this.query = ''
+                this.queryField = 'name'
             }
         }
     }
